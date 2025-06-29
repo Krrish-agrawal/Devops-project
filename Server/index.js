@@ -41,7 +41,7 @@ app.use(cookieParser());
 app.use(
   cors({
     //frontend url
-    origin:"http://localhost:3000",
+    origin:"https://devops-project-m6jb.onrender.com",
     credentials:true,
   })
 );
