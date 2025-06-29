@@ -7,37 +7,42 @@
 ########################
 # -- Stage 1: builder --
 ########################
-FROM node:lts-alpine AS builder
+FROM node:lts-slim AS builder
 
 # Create app directory
 WORKDIR /app
 
-# Copy dependency manifests for both client & server
+# Install dependencies separately to leverage Docker cache
 COPY Client/package*.json ./Client/
 COPY Server/package*.json ./Server/
 
-# Install dependencies separately to leverage Docker cache
-RUN cd Client  && npm ci && \
+RUN cd Client && npm ci && \
     cd ../Server && npm ci --production
 
 # Copy full source
-COPY Client ./Client
+COPY Client/public ./Client/public
+COPY Client/src ./Client/src
+COPY Client/tailwind.config.js ./Client/
+COPY Client/postcss.config.js ./Client/
+COPY Client/tsconfig.json ./Client/   # Include if using TypeScript
 COPY Server ./Server
 
-# Build React front-end
-RUN cd Client && npm run build
+# Build React front-end (with keep-alive output)
+RUN cd Client && \
+    CI=true npm run build & \
+    pid=$!; \
+    while kill -0 $pid 2>/dev/null; do echo "⚙️ Building React app..."; sleep 30; done; \
+    wait $pid
 
 ########################
 # -- Stage 2: runner --
 ########################
-FROM node:lts-alpine
+FROM node:lts-slim
 
 # Set working directory
 WORKDIR /app
 
 # Copy only what we need from builder image
-#  – built static assets
-#  – server code with its node_modules
 COPY --from=builder /app/Client/build        /app/Client/build
 COPY --from=builder /app/Server              /app/Server
 COPY --from=builder /app/Server/node_modules /app/Server/node_modules
