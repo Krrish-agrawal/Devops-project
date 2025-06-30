@@ -24,10 +24,10 @@ COPY Client/public ./Client/public
 COPY Client/src ./Client/src
 COPY Client/tailwind.config.js ./Client/
 COPY Client/postcss.config.js ./Client/
-COPY Client/tsconfig.json ./Client/   # Include if using TypeScript
+COPY Client/tsconfig.json ./Client/   # Remove if not using TS
 COPY Server ./Server
 
-# Build React front-end (with keep-alive output)
+# Build React front-end (with CI mode + keep-alive echo)
 RUN cd Client && \
     CI=true npm run build & \
     pid=$!; \
