@@ -19,7 +19,7 @@ const ContactUsForm = () =>{
         try{
           setLoading(true);
            const response=await apiConnector("POST",contactusEndpoint.CONTACT_US_API,data);
-          const response={status:"OK"};
+          // const response={status:"OK"};
           console.log(response);
           setLoading(false);
         }
